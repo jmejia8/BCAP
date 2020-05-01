@@ -9,7 +9,7 @@ function lower_level_optimizer(Φ,problem,status,information,options,t; paramete
 
     for i = 1:length(Φ)
         if parameters.parms_type[i] <: Integer
-            Φ[i] = round(parameters.parms_type[i], Φ[i])
+            Φ[i] = round(Integer, Φ[i])
         elseif parameters.parms_type[i] <: AbstractFloat
             Φ[i] = round(Φ[i], digits=parameters.significant_digits)
         end
@@ -34,7 +34,7 @@ function lower_level_optimizer(Φ,problem,status,information,options,t; paramete
     I = sortperm(dists)
 
     if dists[I[1]] ≈ 0.0
-        println("###########################---###################")
+        options.debug && @info("Found Φ_new already in P")
         ll_y = status.population[I[1]].y
 
         return Bilevel.LLResult(deepcopy(ll_y), status.population[I[1]].f; f_calls = 0.0)
