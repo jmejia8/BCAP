@@ -29,6 +29,7 @@ mutable struct BCAP_config
     F_approx::Function
     max_global_iters::Int
     max_local_iters::Int
+    p::Int
 end
 
 function BCAP_config(; N = 30,
@@ -45,7 +46,23 @@ function BCAP_config(; N = 30,
                 approx_model = nothing,
                 F_approx = identity,
                 max_global_iters = 100,
+                p = 1,
                 max_local_iters = 10)
 
-    BCAP_config(N,K,η_max,λ,parms_type,significant_digits,calls_per_instance,targetAlgorithm,benchmark,seed,training_population,approx_model,F_approx,max_global_iters,max_local_iters)
+    BCAP_config(N,
+                K,
+                η_max,
+                λ,
+                parms_type,
+                significant_digits,
+                calls_per_instance,
+                targetAlgorithm,
+                benchmark,
+                seed,
+                training_population,
+                approx_model,
+                F_approx,
+                max_global_iters,
+                max_local_iters,
+                p)
 end

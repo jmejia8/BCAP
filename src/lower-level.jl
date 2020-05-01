@@ -8,7 +8,7 @@ function lower_level_optimizer(Φ,problem,status,information,options,t; paramete
 
 
     for i = 1:length(Φ)
-        if parameters.parms_type[i] <: Integer 
+        if parameters.parms_type[i] <: Integer
             Φ[i] = round(parameters.parms_type[i], Φ[i])
         elseif parameters.parms_type[i] <: AbstractFloat
             Φ[i] = round(Φ[i], digits=parameters.significant_digits)
@@ -137,13 +137,12 @@ function call_target_algorithm(targetAlgorithm, Φ, benchmark; ids=ones(Bool, le
     if calls_per_instance == 1
         sd[1] = seed
     end
-    @sync @distributed for a = [(i,j) for i = 1:calls_per_instance for j = the_instances]
-        # for i in the_instances
-            r, i = a
+    @sync @distributed for r = 1:calls_per_instance
+        for i = the_instances
             err = targetAlgorithm(Φ, benchmark[i], sd[r])
 
             Errors_shared[i, r] = err
-        # end
+        end
     end
 
     seed!(old_seed)

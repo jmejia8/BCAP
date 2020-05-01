@@ -28,7 +28,7 @@ function configure(target_algorithm::Function,
                     ul_func = F,
                     bcap_config = BCAP_config(),
                     debug = false,
-                    budget=200)
+                    budget=500)
 
     bounds, parameters_types = parameters_info.bounds, parameters_info.types
     D_ = size(bounds, 2)
@@ -43,6 +43,7 @@ function configure(target_algorithm::Function,
     bcap_config.seed = 1
     bcap_config.η_max = 1.2
     bcap_config.targetAlgorithm = target_algorithm
+    bcap_config.p = 1
 
     options = Bilevel.Options(F_calls_limit=Inf,
                         f_calls_limit=budget*length(benchmark),
@@ -54,6 +55,9 @@ function configure(target_algorithm::Function,
     information = Bilevel.Information(f_optimum=0.0, F_optimum=0.0)
 
     LL_optimizer(Φ,problem,status,information,options,t) = lower_level_optimizer(Φ,problem,status,information,options,t; parameters = bcap_config)
+
+    bcap_config.p > 1 && addprocs(bcap_config.p - 1)
+    debug && @info "working with $(nprocs()) processes"
 
 
     debug && @info("Running BCAP...")

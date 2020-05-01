@@ -5,7 +5,8 @@ function test1()
     # target_algorithm, parameters_info, instances
 
     target_algorithm(Φ, instance, seed = 0) = begin
-        return sum(Φ) + 0.1rand()
+
+        return (instance.index-1)*(sum(Φ) + 0.5rand())
     end
 
     bounds = Array([ zeros(5) 10ones(5) ]')

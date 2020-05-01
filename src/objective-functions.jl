@@ -8,7 +8,7 @@ function F(x, y)
             m = 0.0
         end
 
-        10m #+ 1e2sum(I) + 0.1norm(x,1)
+        10m + 1e2sum(I) + 0.1norm(x,1)
 end
 
 function f(x, y)
