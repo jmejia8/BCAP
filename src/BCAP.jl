@@ -28,7 +28,7 @@ function configure(target_algorithm::Function,
                     ul_func = F,
                     bcap_config = BCAP_config(),
                     debug = false,
-                    budget=500)
+                    budget=200)
 
     bounds, parameters_types = parameters_info.bounds, parameters_info.types
     D_ = size(bounds, 2)
