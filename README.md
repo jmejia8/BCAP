@@ -1,0 +1,3 @@
+# BCAP
+
+Configure an algorithm.
