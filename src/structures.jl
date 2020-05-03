@@ -12,6 +12,29 @@ end # mutable struct
 
 Benchmark = Array{Instance}
 
+mutable struct LLSolution
+    instance_values::Matrix{Float64}
+    solved_instances::Vector{Bool}
+    evaluated_instances::Vector{Bool}
+    isfeasible::Bool
+    seed::Int
+end
+
+function LLSolution(;instance_values    = zeros(0,0),
+                    evaluated_instances = zeros(Bool,0),
+                    solved_instances    = nothing,
+                    isfeasible = false,
+                    seed = 1)
+
+    if solved_instances == nothing
+        mean_values = mean( instance_values, dims=2 )[:,1]
+        solved_instances = map( w -> w ≈ 0.0 ,  mean_values)
+        isfeasible = sum(evaluated_instances) == length(evaluated_instances)
+    end
+
+    LLSolution(instance_values,solved_instances,evaluated_instances,isfeasible,seed)
+
+end
 
 mutable struct BCAP_config
     N::Int64
