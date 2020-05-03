@@ -130,7 +130,7 @@ function lower_level_optimizer(sol::Bilevel.xf_indiv, problem,status,information
 end
 
 
-function call_target_algorithm(targetAlgorithm, Φ, benchmark; ids=ones(Bool, length(benchmark)), seed = 0, calls_per_instance = 1)
+function call_target_algorithm_parallel(targetAlgorithm, Φ, benchmark; ids=ones(Bool, length(benchmark)), seed = 0, calls_per_instance = 1)
 
     Errors_shared = SharedArray{Float64}(length(benchmark), calls_per_instance)
 
@@ -153,6 +153,40 @@ function call_target_algorithm(targetAlgorithm, Φ, benchmark; ids=ones(Bool, le
     seed!(old_seed)
 
     Errors = Matrix(Errors_shared)
+
+    Errors_shared = nothing
+
+    return  Errors
+
+end
+
+function call_target_algorithm(targetAlgorithm, Φ, benchmark; ids=ones(Bool, length(benchmark)), seed = 0, calls_per_instance = 1)
+
+    if nprocs() > 1
+        return call_target_algorithm_parallel(targetAlgorithm, Φ, benchmark, ids=ids, seed = seed, calls_per_instance = calls_per_instance)
+    end
+
+
+    Errors = zeros(length(benchmark), calls_per_instance)
+
+    the_instances = findall(ids)
+    old_seed = abs(rand(Int))
+    seed!(seed)
+
+    sd = abs.(rand(Int, calls_per_instance))
+    if calls_per_instance == 1
+        sd[1] = seed
+    end
+    for r = 1:calls_per_instance
+        for i = the_instances
+            err = targetAlgorithm(Φ, benchmark[i], sd[r])
+
+            Errors[i, r] = err
+        end
+    end
+
+    seed!(old_seed)
+
 
     return  Errors
 
