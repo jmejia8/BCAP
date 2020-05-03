@@ -7,15 +7,16 @@ function lower_level_optimizer(Φ,problem,status,information,options,t; paramete
 
 
 
+    # convert types of parameters
     for i = 1:length(Φ)
         if parameters.parms_type[i] <: Integer
             Φ[i] = round(Integer, Φ[i])
-        elseif parameters.parms_type[i] <: AbstractFloat
+        elseif parameters.significant_digits > 0 &&  parameters.parms_type[i] <: AbstractFloat
             Φ[i] = round(Φ[i], digits=parameters.significant_digits)
         end
     end
 
-    # when initialization
+    # initialization step
     if t == 0
         # seed = abs(rand(Int))
         y = call_target_algorithm(parameters.targetAlgorithm, Φ, parameters.benchmark, seed = parameters.seed, calls_per_instance=parameters.calls_per_instance)
@@ -28,12 +29,12 @@ function lower_level_optimizer(Φ,problem,status,information,options,t; paramete
 
     end
 
-    # distances
-    dists = map( sol -> norm(Φ - sol.x, 1), status.population )
+    # distances { ‖ Φ_new - Φ ‖ Φ ∈ P }
+    distances = map( sol -> norm(Φ - sol.x, 1), status.population )
 
-    I = sortperm(dists)
+    I = sortperm(distances)
 
-    if dists[I[1]] ≈ 0.0
+    if distances[I[1]] ≈ 0.0
         options.debug && @info("Found Φ_new already in P")
         ll_y = status.population[I[1]].y
 
@@ -44,7 +45,7 @@ function lower_level_optimizer(Φ,problem,status,information,options,t; paramete
     K = parameters.K
 
     y = zeros(size(status.population[I[1]].y[:y]))
-    m = exp.(- dists[I[1:K]] )
+    m = exp.(- distances[I[1:K]] )
 
     for i = 1:K
         ids_valuated = status.population[I[i]].y[:ids_eval]
