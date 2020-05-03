@@ -73,7 +73,7 @@ function lower_level_optimizer(Φ,problem,status,information,options,t; paramete
 
     options.debug && println("Solving ", sum(instances2eval), " instances.")
 
-    seed = abs(rand(Int))
+    seed = parameters.seed
 
     y_new = call_target_algorithm(parameters.targetAlgorithm,
                                     Φ,
@@ -130,7 +130,7 @@ function lower_level_optimizer(sol::Bilevel.xf_indiv, problem,status,information
 end
 
 
-function call_target_algorithm_parallel(targetAlgorithm, Φ, benchmark; ids=ones(Bool, length(benchmark)), seed = 0, calls_per_instance = 1)
+function call_target_algorithm_parallel(targetAlgorithm, Φ, benchmark; ids=ones(Bool, length(benchmark)), seed = 1, calls_per_instance = 1)
 
     Errors_shared = SharedArray{Float64}(length(benchmark), calls_per_instance)
 
@@ -160,7 +160,7 @@ function call_target_algorithm_parallel(targetAlgorithm, Φ, benchmark; ids=ones
 
 end
 
-function call_target_algorithm(targetAlgorithm, Φ, benchmark; ids=ones(Bool, length(benchmark)), seed = 0, calls_per_instance = 1)
+function call_target_algorithm(targetAlgorithm, Φ, benchmark; ids=ones(Bool, length(benchmark)), seed = 1, calls_per_instance = 1)
 
     if nprocs() > 1
         return call_target_algorithm_parallel(targetAlgorithm, Φ, benchmark, ids=ids, seed = seed, calls_per_instance = calls_per_instance)
