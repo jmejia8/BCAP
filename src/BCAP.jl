@@ -15,6 +15,7 @@ include("objective-functions.jl")
 include("initialize.jl")
 include("lower-level.jl")
 include("upper-level.jl")
+include("display.jl")
 
 """
     configure(target_algorithm, parameters_info, instances)
@@ -28,7 +29,7 @@ function configure(target_algorithm::Function,
                     ul_func = F,
                     bcap_config = BCAP_config(),
                     debug = false,
-                    budget=200)
+                    budget=500)
 
     bounds, parameters_types = parameters_info.bounds, parameters_info.types
     D_ = size(bounds, 2)
