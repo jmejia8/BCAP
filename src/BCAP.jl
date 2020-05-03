@@ -79,6 +79,6 @@ function configure(target_algorithm::Function,
 end
 
 
-export configure, Parameters, Instance, Benchmark
+export configure, Parameters, Instance, Benchmark, BCAP_config
 
 end # module
