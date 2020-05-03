@@ -23,11 +23,6 @@ function initialize!(problem,engine,parameters,status,information,options)
 
     status.final_time = t2
 
-    s = zeros(length(status.best_sol.y.instance_values))
-    for sol in status.population
-        s += sol.y.instance_values
-    end
-
 
     t = round(Int, (t2 - t1) * (options.f_calls_limit - status.f_calls) / length(status.population))
 
