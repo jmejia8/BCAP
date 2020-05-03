@@ -3,7 +3,7 @@ function update_state!(problem,engine,parameters,status,information,options,t_ma
     best = deepcopy(status.best_sol)
     Bilevel.BCAOperators.update_state!(problem,engine,parameters,status,information,options,t_main_loop)
 
-    if !status.best_sol.y[:feasible] || status.best_sol.F > best.F
+    if !status.best_sol.y.isfeasible || status.best_sol.F > best.F
         status.best_sol = best
     end
 
@@ -19,15 +19,15 @@ function update_state!(problem,engine,parameters,status,information,options,t_ma
 
 
     for sol in status.population
-        if !sol.y[:feasible]
+        if !sol.y.isfeasible
             p = sol.x
 
-            pred = sol.y[:ids]
+            pred = sol.y.solved_instances
 
             ll_result = engine.lower_level_optimizer(sol,problem,status,information,options, t_main_loop)
             status.f_calls += ll_result.f_calls
             q = ll_result.y
-            exact = q[:ids]
+            exact = q.solved_instances
             FF = problem.F(p, q)
             status.F_calls += 1
 
@@ -79,11 +79,11 @@ function final_stage!(status, information, options)
     i = 1
     ids = Int[]
     for sol = status.population
-        if sol.y[:feasible] && is_better(sol, status.best_sol)
+        if sol.y.isfeasible && is_better(sol, status.best_sol)
             status.best_sol = sol
         end
 
-        if !sol.y[:feasible]
+        if !sol.y.isfeasible
             push!(ids, i)
         end
 

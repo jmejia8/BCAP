@@ -5,7 +5,7 @@ function test1()
     # target_algorithm, parameters_info, instances
 
     target_algorithm(Φ, instance, seed = 0) = begin
-        return sum( (Φ .- 5).^2 )
+        #return sum( (Φ .- (1:length(Φ))).^2 )
 
         if instance.index % 3 == 0
             v = rand()
@@ -17,12 +17,12 @@ function test1()
     end
 
     bounds = Array([ zeros(5) 10ones(5) ]')
-    bounds[:, end-1] = [0, 1.0]
-    bounds[:, end-2] = [4, 500.0]
-    bounds[:, end] = [0, 1.0]
-    parameters = Parameters(bounds, [ Int, Float64, Int, Float64, Bool ])
+    bounds[:, 1] = [0, 1.0]
+    bounds[:, 3] = [0, 4.3]
+    bounds[:, end-2] = [1, 500.0]
+    parameters = Parameters(bounds, [Bool, Int, Float64, Int, Float64 ])
 
-    benchmark = [Instance(0.5, nothing, i) for i = 1:10]
+    benchmark = [Instance(0.5i, nothing, i) for i = 1:10]
 
     res = configure(target_algorithm, parameters, benchmark, debug = true )
     display(res)

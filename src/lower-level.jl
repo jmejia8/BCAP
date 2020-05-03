@@ -16,16 +16,22 @@ function lower_level_optimizer(Φ,problem,status,information,options,t; paramete
         end
     end
 
+    num_instances = length(parameters.benchmark)
+
     # initialization step
     if t == 0
         # seed = abs(rand(Int))
-        y = call_target_algorithm(parameters.targetAlgorithm, Φ, parameters.benchmark, seed = parameters.seed, calls_per_instance=parameters.calls_per_instance)
-        mean_y = mean( y, dims=2 )[:,1]
-        ids = map( w -> w ≈ 0.0 ,  mean_y)
+        y = call_target_algorithm(  parameters.targetAlgorithm,
+                                    Φ,
+                                    parameters.benchmark,
+                                    seed = parameters.seed,
+                                    calls_per_instance=parameters.calls_per_instance)
 
-        ll_y = Dict( :y => y, :ids => ids, :ids_eval => ones(Bool,length(ids)), :feasible => true, :seed => parameters.seed )
+        ll_y = LLSolution(  instance_values = y,
+                            evaluated_instances = ones(Bool, num_instances),
+                            seed = parameters.seed)
 
-        return Bilevel.LLResult(ll_y, problem.f(Φ, ll_y); f_calls=length(ids)*parameters.calls_per_instance)
+        return Bilevel.LLResult(ll_y, problem.f(Φ, ll_y); f_calls=num_instances*parameters.calls_per_instance)
 
     end
 
@@ -44,41 +50,45 @@ function lower_level_optimizer(Φ,problem,status,information,options,t; paramete
 
     K = parameters.K
 
-    y = zeros(size(status.population[I[1]].y[:y]))
+    y = zeros(size(status.population[I[1]].y.instance_values))
     m = exp.(- distances[I[1:K]] )
 
     for i = 1:K
-        ids_valuated = status.population[I[i]].y[:ids_eval]
-        y[ids_valuated, :] += m[i]*status.population[I[i]].y[:y][ids_valuated,:]
+        valuated_instances = status.population[I[i]].y.evaluated_instances
+        y[valuated_instances, :] += m[i]*status.population[I[i]].y.instance_values[valuated_instances,:]
     end
 
     y = y ./ sum(m)
     y = map( a -> a ≈ 0.0 ? 0.0 : a , y )
 
     mean_y = mean( y, dims=2 )[:,1]
-    ids_to_eval = map( w -> w > 0.0,  mean_y)
+    instances2eval = map( w -> w > 0.0,  mean_y)
 
-    if length(ids_to_eval) > 1 && sum(ids_to_eval) > length(ids_to_eval) / 2
+    if length(instances2eval) > 1 && sum(instances2eval) > length(instances2eval) / 2
         I = sortperm(mean_y)
-        ids_to_eval[I[1: (length(I) ÷ 2) ]] .= 0
-        options.debug && print("LL approx: ")
+        instances2eval[I[1: (length(I) ÷ 2) ]] .= 0
+        options.debug && println("Φ = ", Φ, " is too bad")
     end
 
 
+    options.debug && println("Solving ", sum(instances2eval), " instances.")
+
     seed = abs(rand(Int))
 
-    options.debug && println("Solving ", sum(ids_to_eval), " instances.")
-    y_new = call_target_algorithm(parameters.targetAlgorithm, Φ, parameters.benchmark, ids=ids_to_eval, seed = seed, calls_per_instance=parameters.calls_per_instance)
-    f_calls = sum(ids_to_eval) * parameters.calls_per_instance
-    y[ids_to_eval,:] = y_new[ids_to_eval,:]
-
-    feasible =  sum(ids_to_eval) == length(ids_to_eval)
-
-    mean_y = mean( y, dims=2 )[:,1]
-    ids = map( w -> w ≈ 0.0 ,  mean_y)
-    ll_y = Dict( :y => y, :ids => ids, :ids_eval => ids_to_eval, :feasible => feasible, :seed => seed )
+    y_new = call_target_algorithm(parameters.targetAlgorithm,
+                                    Φ,
+                                    parameters.benchmark,
+                                    ids = instances2eval,
+                                    seed= seed,
+                                    calls_per_instance=parameters.calls_per_instance )
 
 
+    f_calls = sum(instances2eval) * parameters.calls_per_instance
+    y[instances2eval,:] = y_new[instances2eval,:]
+
+    ll_y = LLSolution(  instance_values = y,
+                        evaluated_instances = instances2eval,
+                        seed = seed)
 
     Bilevel.LLResult(ll_y, problem.f(Φ, ll_y) ; f_calls=f_calls)
 
@@ -91,35 +101,29 @@ function lower_level_optimizer(sol::Bilevel.xf_indiv, problem,status,information
     end
 
     Φ = sol.x
+    lower_level = sol.y
+    instances2eval = .!lower_level.evaluated_instances
 
-    ids_to_eval = .!sol.y[:ids_eval]
-
-    options.debug && println("Reevaluation: Solving ", sum(ids_to_eval), " instances.")
+    options.debug && println("Reevaluation: Solving ", sum(instances2eval), " instances.")
 
 
-    if sum(ids_to_eval) == 0
-        sol.y[:feasible] = true
-        return Bilevel.LLResult(sol.y, sol.f ; f_calls=0)
+    if sum(instances2eval) == 0
+        lower_level.isfeasible = true
+        return Bilevel.LLResult(lower_level, sol.f ; f_calls=0)
     end
 
-    y = copy(sol.y[:y])
+    y = copy(lower_level.instance_values)
+
+    seed = lower_level.seed
+    y_new = call_target_algorithm(parameters.targetAlgorithm, Φ, parameters.benchmark, ids=instances2eval, seed = seed, calls_per_instance=parameters.calls_per_instance)
+    f_calls = sum(instances2eval)*parameters.calls_per_instance
 
 
-    seed = sol.y[:seed]
-    y_new = call_target_algorithm(parameters.targetAlgorithm, Φ, parameters.benchmark, ids=ids_to_eval, seed = seed, calls_per_instance=parameters.calls_per_instance)
-    f_calls = sum(ids_to_eval)*parameters.calls_per_instance
+    y[instances2eval,:] = y_new[instances2eval,:]
 
-
-    y[ids_to_eval,:] = y_new[ids_to_eval,:]
-
-
-    mean_y  = mean( y, dims=2 )[:,1]
-    ids_new = map( w -> w ≈ 0.0 ,  mean_y)
-
-
-    ll_y = Dict( :y => y, :ids => ids_new, :ids_eval => ones(Bool, length(ids_to_eval)), :feasible => true, :seed => seed )
-
-
+    ll_y = LLSolution(  instance_values = y,
+                        evaluated_instances = ones(Bool, length(instances2eval)),
+                        seed = seed)
 
     Bilevel.LLResult(ll_y, problem.f(Φ, ll_y) ; f_calls=f_calls)
 
