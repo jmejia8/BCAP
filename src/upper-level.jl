@@ -10,8 +10,7 @@ function update_state!(problem,engine,parameters,status,information,options,t_ma
     reevaluate = status.stop || (t_main_loop > 0 && t_main_loop % 5 != 0)
 
     # force reevaluation of last population
-    force_reevaluation = options.f_calls_limit - status.f_calls <= (2*parameters.N)*length(parameters.benchmark) * parameters.calls_per_instance
-
+    force_reevaluation = options.f_calls_limit - status.f_calls <= (parameters.N)*length(parameters.benchmark) * parameters.calls_per_instance
 
 
     if reevaluate && !force_reevaluation
@@ -48,7 +47,7 @@ function update_state!(problem,engine,parameters,status,information,options,t_ma
             status.best_sol.y = deepcopy(sol.y)
         end
 
-        if !force_reevaluation && status.f_calls >= options.f_calls_limit
+        if status.f_calls >= options.f_calls_limit
             status.stop = true
             break
         end
