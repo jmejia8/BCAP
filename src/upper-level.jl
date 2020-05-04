@@ -7,15 +7,20 @@ function update_state!(problem,engine,parameters,status,information,options,t_ma
         status.best_sol = best
     end
 
+    reevaluate = status.stop || (t_main_loop > 0 && t_main_loop % 5 != 0)
+
+    # force reevaluation of last population
+    force_reevaluation = options.f_calls_limit - status.f_calls <= (2*parameters.N)*length(parameters.benchmark) * parameters.calls_per_instance
 
 
 
-    if status.stop || (t_main_loop > 0 && t_main_loop % 5 != 0)
+    if reevaluate && !force_reevaluation
         status.final_time = time()
         return
     end
 
      options.debug && @info "Re-evualing...."
+     options.debug && force_reevaluation && @info "Forced Re-evualuation...."
 
 
     for sol in status.population
@@ -27,7 +32,6 @@ function update_state!(problem,engine,parameters,status,information,options,t_ma
             ll_result = engine.lower_level_optimizer(sol,problem,status,information,options, t_main_loop)
             status.f_calls += ll_result.f_calls
             q = ll_result.y
-            exact = q.solved_instances
             FF = problem.F(p, q)
             status.F_calls += 1
 
@@ -37,14 +41,14 @@ function update_state!(problem,engine,parameters,status,information,options,t_ma
         end
 
         if is_better(sol, status.best_sol)
-            options.debug && @info "Best sol. updated"
+            options.debug && @info "Best sol. updated in reevaluation"
             status.best_sol.F = sol.F
             status.best_sol.f = sol.f
             status.best_sol.x = copy(sol.x)
             status.best_sol.y = deepcopy(sol.y)
         end
 
-        if status.f_calls >= options.f_calls_limit
+        if !force_reevaluation && status.f_calls >= options.f_calls_limit
             status.stop = true
             break
         end
@@ -90,7 +94,7 @@ function final_stage!(status, information, options)
         i += 1
     end
 
-    options.debug && @info "Removing $(length(ids)) infeasible solution(s)."
+    options.debug && length(ids) > 0 && @info "Removing $(length(ids)) infeasible solution(s)."
 
     deleteat!(status.population, ids)
 end
