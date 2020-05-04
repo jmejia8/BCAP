@@ -35,7 +35,7 @@ function configure(target_algorithm::Function,
     D_ = size(bounds, 2)
     K = 6
 
-    bcap_config.N = K*D_
+    bcap_config.N = 2K*D_
     bcap_config.K = K
     bcap_config.parms_type = parameters_types
     bcap_config.significant_digits = 6
