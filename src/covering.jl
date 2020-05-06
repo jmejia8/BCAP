@@ -1,28 +1,20 @@
-function hill_climbing(pre_hill, k_level, num_inter, step)
-    #step is used to keep track of all the rows we have checked
-    #  so we don't waste resources rechecking them
-    #Iterate through every row in the array
-    for i in step:length(pre_hill)
-        #if it is found that a row can be removed...
-        # println("aaa")
-        # @show i
-        tmp = pre_hill[i]
-        if check_interactions(deleteat!(pre_hill, i), k_level, num_inter)
-            # println("bbb")
-            #print("We have to go deeper..." + str(i))
-            #...recurse the program on itself with said row removed
-            @show length(pre_hill)
-            return hill_climbing(pre_hill, k_level, num_inter, i)
+import StatsBase: sample
+import IterTools
+
+function hill_climbing(current_CA, k_level, num_interactions, step)
+    for i in step:length(current_CA)
+        tmp = current_CA[i]
+        if check_interactions(deleteat!(current_CA, i), k_level, num_interactions)
+            return hill_climbing(current_CA, k_level, num_interactions, i)
         end
-        insert!(pre_hill, i, tmp)
-        # println("ccc")
+        insert!(current_CA, i, tmp)
     end
-    return pre_hill
+    return current_CA
 end
 
-function check_interactions(test, k_level, num_inter)
+function check_interactions(test, k_level, num_interactions)
     #get all existing combinations (interactions) from the data
-    for p in IterTools.subsets(1:length(k_level), num_inter)
+    for p in IterTools.subsets(1:length(k_level), num_interactions)
         #Mul represents the number of unique iterations we expect for the exerpt
         mul = 1
         for i in p
@@ -39,12 +31,12 @@ function check_interactions(test, k_level, num_inter)
     return true
 end
 
-function create_cover(k_level, num_inter)
+function create_cover(k_level, num_interactions, size_ = Inf)
     #get the full array that we can take random elements out of
     full = create_full_array(k_level)
 
     #get the predicted covering array size
-    cov_size = min(find_size(num_inter, length(k_level), maximum(k_level)), length(full))
+    cov_size = min(size_, find_size(num_interactions, length(k_level), maximum(k_level)), length(full))
 
     running = 100
     test = []
@@ -54,7 +46,7 @@ function create_cover(k_level, num_inter)
         #Create a new test array
         test = create_test_array(full, cov_size)
         #check if all interactions are represented in this test array
-        if (check_interactions(test, k_level, num_inter))
+        if (check_interactions(test, k_level, num_interactions))
             #save the working test
             #cov_size = cov_size - 1
             working_test = test
@@ -105,8 +97,6 @@ end
 
 function create_test_array(array, size_)
     #Sorted for readability
-    #random.sample to prevent duplicate elements
-    #min to make sure that we don't run into a sample error
     ii = sort(sample(1:length(array), size_, replace = false))
     return array[ii]
 
@@ -139,21 +129,14 @@ function choose(n, k)
     return 0
 end
 
-
-function main()
-    k_level = repeat([2], 10)
-    # k_level[end] = 20
-    num_inter = 2
-
-
-    k_level = sort(k_level)
-
-    CA = create_cover(k_level, num_inter)
-    @show length(CA)
-    hill_climbing(CA, k_level, num_inter, 1)
+function genCA(k_level; num_interactions = 2, cov_size = 100)
+    CA = create_cover(k_level, num_interactions, cov_size)
+    return hill_climbing(CA, k_level, num_interactions, 1)
 end
 
-@time r = main()
+function test_CA()
+    k_level = repeat([2], 10)
+    genCA(k_level)
+end
 
-println("-------------------")
-display(r)
+@time test_CA()
