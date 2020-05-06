@@ -2,12 +2,19 @@ function initialize!(problem,engine,parameters,status,information,options)
     #########################################
     ########### parameter setting ###########
     #########################################
+    # bounds = problem.bounds_ul[:, map( t -> t <: Integer, parameters.parms_type )]
+    #
+    # s = prod(bounds[2,:] - bounds[1,:] .+ 1)
+    # @show s
+
+
+
     iterations = options.f_calls_limit ÷ (parameters.N * parameters.calls_per_instance * length(parameters.benchmark))
     options.debug && @show iterations
     if iterations < 5
         iterations = 11
         parameters.N =  options.f_calls_limit ÷ (iterations * parameters.calls_per_instance * length(parameters.benchmark))
-        @show parameters.N
+        options.debug && @show parameters.N
         parameters.K = 2
     end
 

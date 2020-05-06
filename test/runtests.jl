@@ -24,14 +24,8 @@ function test1()
 
     benchmark = [Instance(0.5i, nothing, i) for i = 1:10]
 
-    res = configure(target_algorithm, parameters, benchmark, debug = true )
-    display(res)
-    println("============================")
-    for sol in res.population
-        @show sol.x
-        @show sol.F
-        println("-----")
-    end
+    res = configure(target_algorithm, parameters, benchmark, debug = false )
+
     res.best_sol.F >= 0.0
 end # function
 
@@ -57,15 +51,9 @@ function test2()
 
     benchmark = [Instance(0.5i, nothing, i) for i = 1:10]
 
-    res = configure(target_algorithm, parameters, benchmark, debug = true )
-    display(res)
-    println("============================")
-    for sol in res.population
-        @show sol.x
-        @show sol.F
-        println("-----")
-    end
+    res = configure(target_algorithm, parameters, benchmark, debug = false )
     res.best_sol.F >= 0.0
 end # function
 
+@test test1()
 @test test2()
