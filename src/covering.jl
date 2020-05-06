@@ -138,5 +138,3 @@ function test_CA()
     k_level = repeat([2], 10)
     genCA(k_level)
 end
-
-@time test_CA()
