@@ -1,6 +1,7 @@
 function update_state!(problem,engine,parameters,status,information,options,t_main_loop)
 
     best = deepcopy(status.best_sol)
+    P_old = copy(status.population)
     Bilevel.BCAOperators.update_state!(problem,engine,parameters,status,information,options,t_main_loop)
 
     if !status.best_sol.y.isfeasible || status.best_sol.F > best.F
@@ -47,10 +48,18 @@ function update_state!(problem,engine,parameters,status,information,options,t_ma
             status.best_sol.y = deepcopy(sol.y)
         end
 
-        if status.f_calls >= options.f_calls_limit
+        push!(P_old, sol)
+
+        if status.f_calls >= options.f_calls_limit || status.best_sol.f == length(parameters.benchmark)
             status.stop = true
             break
         end
+    end
+
+
+    if length(P_old) > parameters.N
+        sort!(P_old, lt = (a, b) -> is_better(a, b))
+        status.population = P_old[1:parameters.N]
     end
 
     status.final_time = time()
@@ -61,7 +70,7 @@ end
 is_better_approx(solution_1, solution_2) = solution_1.F < solution_2.F
 
 function is_better(solution_1, solution_2)
-    return solution_1.F < solution_2.F
+    return solution_1.F < solution_2.F || solution_1.f > solution_2.f
 
 end
 
