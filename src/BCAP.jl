@@ -32,10 +32,17 @@ function configure(target_algorithm::Function,
                     budget=500)
 
     bounds, parameters_types = parameters_info.bounds, parameters_info.types
+
+    bb = bounds[:, map( t -> t <: Real, parameters_types )]
+
+    s = prod(bb[2,:] - bb[1,:] .+ 1)
+    s = round(Int, 0.1s)
+
+
     D_ = size(bounds, 2)
     K = 6
 
-    bcap_config.N = 2K*D_
+    bcap_config.N = max(2K, min(s , K*D_))
     bcap_config.K = K
     bcap_config.parms_type = parameters_types
     bcap_config.significant_digits = 6
