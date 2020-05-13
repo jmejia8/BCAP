@@ -1,4 +1,7 @@
 function update_state!(problem,engine,parameters,status,information,options,t_main_loop)
+    if status.best_sol.y.isfeasible && status.best_sol.f == length(parameters.benchmark)
+        status.stop = true
+    end
 
     best = deepcopy(status.best_sol)
     P_old = copy(status.population)
@@ -6,6 +9,10 @@ function update_state!(problem,engine,parameters,status,information,options,t_ma
 
     if !status.best_sol.y.isfeasible || status.best_sol.F > best.F
         status.best_sol = best
+    end
+
+    if status.best_sol.y.isfeasible && status.best_sol.f == length(parameters.benchmark)
+        status.stop = true
     end
 
     reevaluate = status.stop || (t_main_loop > 0 && t_main_loop % 5 != 0)
