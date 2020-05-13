@@ -2,10 +2,6 @@ function initialize!(problem,engine,parameters,status,information,options)
     #########################################
     ########### parameter setting ###########
     #########################################
-    # bounds = problem.bounds_ul[:, map( t -> t <: Integer, parameters.parms_type )]
-    #
-    # s = prod(bounds[2,:] - bounds[1,:] .+ 1)
-    # @show s
 
 
 
