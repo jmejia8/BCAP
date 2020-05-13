@@ -1,5 +1,8 @@
 using BCAP
 using Test
+import Random: seed!
+
+seed!(0)
 
 function test1()
     # target_algorithm, parameters_info, instances
@@ -25,8 +28,7 @@ function test1()
     benchmark = [Instance(0.5i, nothing, i) for i = 1:10]
 
     res = configure(target_algorithm, parameters, benchmark, debug = false )
-
-    res.best_sol.F >= 0.0
+    res.best_sol.f ≈ 10.0
 end # function
 
 
@@ -52,7 +54,8 @@ function test2()
     benchmark = [Instance(0.5i, nothing, i) for i = 1:10]
 
     res = configure(target_algorithm, parameters, benchmark, debug = false )
-    res.best_sol.F >= 0.0
+    res.best_sol.f ≈ 10.0
+
 end # function
 
 @test test1()
