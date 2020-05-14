@@ -1,7 +1,4 @@
 function update_state!(problem,engine,parameters,status,information,options,t_main_loop)
-    if status.best_sol.y.isfeasible && status.best_sol.f == length(parameters.benchmark)
-        status.stop = true
-    end
 
     best = deepcopy(status.best_sol)
     P_old = copy(status.population)
@@ -13,6 +10,9 @@ function update_state!(problem,engine,parameters,status,information,options,t_ma
 
     if status.best_sol.y.isfeasible && status.best_sol.f == length(parameters.benchmark)
         status.stop = true
+        status.stop_msg = "isfeasible or optimum found"
+        status.stop_msg = "Optimum found"
+        return
     end
 
     reevaluate = status.stop || (t_main_loop > 0 && t_main_loop % 5 != 0)
@@ -59,6 +59,7 @@ function update_state!(problem,engine,parameters,status,information,options,t_ma
 
         if status.f_calls >= options.f_calls_limit || status.best_sol.f == length(parameters.benchmark)
             status.stop = true
+            status.stop_msg = "f_calls limited or optimum found"
             break
         end
     end
@@ -87,9 +88,10 @@ function stop_criteria(status, information, options)
     end
 
     Fs = map(sol -> sol.F, status.population )
-
-
     status.stop = var(Fs) < 1e-8
+    status.stop_msg = status.stop ? "var(F(Φ_i)) ≈ 0" : ""
+
+    status.stop
 
 
 end

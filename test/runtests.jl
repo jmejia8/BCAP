@@ -28,6 +28,9 @@ function test1()
     benchmark = [Instance(0.5i, nothing, i) for i = 1:10]
 
     res = configure(target_algorithm, parameters, benchmark, debug = false )
+
+    display(res)
+
     res.best_sol.f ≈ 10.0
 end # function
 
@@ -54,6 +57,7 @@ function test2()
     benchmark = [Instance(0.5i, nothing, i) for i = 1:10]
 
     res = configure(target_algorithm, parameters, benchmark, debug = false )
+    display(res)
     res.best_sol.f ≈ 10.0
 
 end # function

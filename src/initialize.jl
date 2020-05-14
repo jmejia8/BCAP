@@ -26,6 +26,12 @@ function initialize!(problem,engine,parameters,status,information,options)
 
     status.final_time = t2
 
+    if status.best_sol.y.isfeasible && status.best_sol.f == length(parameters.benchmark)
+        status.stop = true
+        status.stop_msg = "Optimum found" 
+        return
+    end
+
 
     t = round(Int, (t2 - t1) * (options.f_calls_limit - status.f_calls) / length(status.population))
 
