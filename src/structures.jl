@@ -57,7 +57,7 @@ end
 
 function BCAP_config(; N = 30,
                 K = 6,
-                η_max = 1.0,
+                η_max = 1.2,
                 λ = 1e-1,
                 parms_type = [],
                 significant_digits = 6,

@@ -40,18 +40,14 @@ function configure(target_algorithm::Function,
 
 
     D_ = size(bounds, 2)
-    K = 6
 
+    K = bcap_config.K
     bcap_config.N = max(2K, min(s , K*D_))
-    bcap_config.K = K
     bcap_config.parms_type = parameters_types
-    bcap_config.significant_digits = 6
-    bcap_config.calls_per_instance = 1
     bcap_config.benchmark = benchmark
-    bcap_config.seed = 1
     bcap_config.η_max = 1.2
     bcap_config.targetAlgorithm = target_algorithm
-    bcap_config.p = 1
+
 
     options = Bilevel.Options(F_calls_limit=Inf,
                         f_calls_limit=budget*length(benchmark),
