@@ -162,16 +162,19 @@ end
 
 function call_target_algorithm(targetAlgorithm, Φ, benchmark; ids=ones(Bool, length(benchmark)), seed = 1, calls_per_instance = 1)
 
+    old_seed = abs(rand(Int))
+    seed!(seed)
+
     if nprocs() > 1
-        return call_target_algorithm_parallel(targetAlgorithm, Φ, benchmark, ids=ids, seed = seed, calls_per_instance = calls_per_instance)
+        err = targetAlgorithm(Φ, benchmark, seed)
+        seed!(old_seed)
+        return err
     end
 
 
     Errors = zeros(length(benchmark), calls_per_instance)
 
     the_instances = findall(ids)
-    old_seed = abs(rand(Int))
-    seed!(seed)
 
     sd = abs.(rand(Int, calls_per_instance))
     if calls_per_instance == 1
