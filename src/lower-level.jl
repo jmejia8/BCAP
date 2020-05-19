@@ -166,14 +166,16 @@ function call_target_algorithm(targetAlgorithm, Φ, benchmark; ids=ones(Bool, le
     seed!(seed)
 
     the_instances = findall(ids)
+    Errors = zeros(length(benchmark), calls_per_instance)
     if nprocs() > 1
         err = targetAlgorithm(Φ, benchmark[the_instances], seed)
         seed!(old_seed)
-        return err
+        Errors[the_instances,:] = err
+        return Errors
     end
 
 
-    Errors = zeros(length(benchmark), calls_per_instance)
+
 
 
     sd = abs.(rand(Int, calls_per_instance))
