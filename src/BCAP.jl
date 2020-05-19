@@ -60,7 +60,7 @@ function configure(target_algorithm::Function,
 
     LL_optimizer(Φ,problem,status,information,options,t) = lower_level_optimizer(Φ,problem,status,information,options,t; parameters = bcap_config)
 
-    bcap_config.p > 1 && addprocs(bcap_config.p - 1)
+    bcap_config.p > 1 && addProcesses(bcap_config.p)
     debug && @info "working with $(nprocs()) processes"
 
 
