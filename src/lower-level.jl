@@ -6,7 +6,7 @@ function lower_level_optimizer(
     options,
     t;
     parameters = nothing,
-    Errors_shared = nothing,
+    Errors_shared = SharedArray{Float64}(length(benchmark), 31),
 )
 
     if isnothing(parameters)
