@@ -8,7 +8,7 @@ function update_state!(problem,engine,parameters,status,information,options,t_ma
         status.best_sol = best
     end
 
-    if status.best_sol.y.isfeasible && status.best_sol.f == length(parameters.benchmark)
+    if status.best_sol.y.isfeasible && status.best_sol.f == 0.0
         status.stop = true
         status.stop_msg = "isfeasible or optimum found"
         status.stop_msg = "Optimum found"
@@ -57,7 +57,7 @@ function update_state!(problem,engine,parameters,status,information,options,t_ma
 
         push!(P_old, sol)
 
-        if status.f_calls >= options.f_calls_limit || status.best_sol.f == length(parameters.benchmark)
+        if status.f_calls >= options.f_calls_limit || status.best_sol.f == 0.0
             status.stop = true
             status.stop_msg = "f_calls limited or optimum found"
             break
@@ -78,12 +78,18 @@ end
 is_better_approx(solution_1, solution_2) = solution_1.F < solution_2.F
 
 function is_better(solution_1, solution_2)
-    return solution_1.F < solution_2.F || solution_1.f > solution_2.f
+    return solution_1.F < solution_2.F #|| solution_1.f < solution_2.f
 
 end
 
 function stop_criteria(status, information, options)
     if Bilevel.stop_check(status, information, options)
+        return true
+    end
+
+    if status.best_sol.y.isfeasible && status.best_sol.f == 0.0
+        status.stop = true
+        status.stop_msg = "Optimum found"
         return true
     end
 

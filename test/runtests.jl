@@ -31,7 +31,7 @@ function test1()
 
     display(res)
 
-    res.best_sol.f ≈ 10.0
+    res.best_sol.f ≈ 0.0
 end # function
 
 
@@ -58,7 +58,7 @@ function test2()
 
     res = configure(target_algorithm, parameters, benchmark, debug = false )
     display(res)
-    res.best_sol.f ≈ 10.0
+    res.best_sol.f ≈ 0.0
 
 end # function
 
