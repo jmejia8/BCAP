@@ -1,4 +1,8 @@
 function addProcesses(n::Int = Sys.CPU_THREADS)
+    if n == nprocs()
+        return
+    end
+
     n = min(Sys.CPU_THREADS, n)
 
     while nprocs() > n

@@ -1,7 +1,7 @@
 name = "BCAP"
 uuid = "fe4e27b2-16c5-44a3-8036-f7f3bae03a1e"
 authors = ["Jesús Mejía <jesusmejded@gmail.com>"]
-version = "0.1.0"
+version = "0.2.0"
 
 [deps]
 Bilevel = "345d3ba6-d16c-11e8-3a43-33eb7bceec82"

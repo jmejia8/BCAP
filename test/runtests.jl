@@ -1,14 +1,17 @@
-using BCAP
+using Distributed
+
+addprocs(2)
+
+@everywhere using BCAP
 using Test
 import Random: seed!
 
-seed!(0)
+seed!(31)
 
 function test1()
-    # target_algorithm, parameters_info, instances
+
 
     target_algorithm(Φ, instance, seed = 0) = begin
-        #return sum( (Φ .- (1:length(Φ))).^2 )
 
         if instance.index % 3 == 0
             v = rand()
@@ -36,10 +39,8 @@ end # function
 
 
 function test2()
-    # target_algorithm, parameters_info, instances
 
     target_algorithm(Φ, instance, seed = 0) = begin
-        #return sum( (Φ .- (1:length(Φ))).^2 )
 
         if instance.index % 5 == 0
             v = rand()

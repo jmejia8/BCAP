@@ -1,4 +1,4 @@
-function F(x, y; λ_1= 0, λ_2 = 0.1)
+function F(x, y; λ_1= 0.0, λ_2 = 0.01)
         mean_y = mean(y.instance_values, dims=2)[:,1]
         not_solved = .!y.solved_instances
 

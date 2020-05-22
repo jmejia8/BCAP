@@ -18,10 +18,19 @@ include("upper-level.jl")
 include("display.jl")
 
 """
-    configure(target_algorithm, parameters_info, instances)
+    configure(target_algorithm::Function,
+                        parameters_info::Parameters,
+                        benchmark::Benchmark;
+                        ll_func = f,
+                        ul_func = F,
+                        bcap_config = BCAP_config(),
+                        debug = false,
+                        store_convergence=false,
+                        budget=500)
 
 Configure a `target_algorithm` using BCAP
 """
+
 function configure(target_algorithm::Function,
                     parameters_info::Parameters,
                     benchmark::Benchmark;
@@ -29,6 +38,7 @@ function configure(target_algorithm::Function,
                     ul_func = F,
                     bcap_config = BCAP_config(),
                     debug = false,
+                    store_convergence=false,
                     budget=500)
 
     bounds, parameters_types = parameters_info.bounds, parameters_info.types
@@ -53,14 +63,18 @@ function configure(target_algorithm::Function,
                         f_calls_limit=budget*length(benchmark),
                         F_tol=1e-5,
                         f_tol=1e-5,
-                        store_convergence=false,
+                        store_convergence=store_convergence,
                         debug=debug)
 
     information = Bilevel.Information(f_optimum=0.0, F_optimum=0.0)
 
-    LL_optimizer(Φ,problem,status,information,options,t) = lower_level_optimizer(Φ,problem,status,information,options,t; parameters = bcap_config)
+    Errors_shared = SharedArray{Float64}(length(benchmark), bcap_config.calls_per_instance)
+    LL_optimizer(Φ,problem,status,information,options,t) = lower_level_optimizer(Φ,problem,status,information,options,t; parameters = bcap_config, Errors_shared = Errors_shared)
 
-    bcap_config.p > 1 && addProcesses(bcap_config.p)
+
+
+
+    bcap_config.p = nprocs()
     debug && @info "working with $(nprocs()) processes"
 
 
