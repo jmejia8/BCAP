@@ -32,6 +32,13 @@ function initialize!(problem,engine,parameters,status,information,options)
         return
     end
 
+    surrogate!(problem,
+        engine,
+        parameters,
+        status,
+        information,
+        options,
+        0)
 
     t = round(Int, (t2 - t1) * (options.f_calls_limit - status.f_calls) / length(status.population))
 

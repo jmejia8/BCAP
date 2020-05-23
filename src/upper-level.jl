@@ -98,10 +98,73 @@ function update_state!(
         status.population = P_old[1:parameters.N]
     end
 
+    ##################################################
+    ##################################################
+    ##################################################
+    ##################################################
+
+    surrogate!(problem,
+        engine,
+        parameters,
+        status,
+        information,
+        options,
+        t_main_loop,)
+
     status.final_time = time()
 
 end
 
+function surrogate!(problem,
+    engine,
+    parameters,
+    status,
+    information,
+    options,
+    t_main_loop,
+)
+
+    a = problem.bounds_ul[1,:]
+    b = problem.bounds_ul[2,:]
+
+    X = map(sol -> sol.x', status.population)
+    y = map(sol -> sol.F, status.population)
+    X = vcat(X...)
+    X = (X .- a') ./ (b - a)'
+    method = KernelInterpolation(y, X, λ = 1e-5, kernel = PolynomialKernel())
+    train!(method)
+    F̂ = approximate(method)
+
+
+    x_initial = (status.best_sol.x - a) ./ (b - a)
+    optimizer = Optim.Fminbox(Optim.BFGS())
+    res = Optim.optimize(F̂, zeros(length(a)), ones(length(a)), x_initial, optimizer, Optim.Options(outer_iterations = 1))
+    p = a .+ (b - a) .* res.minimizer
+
+    ll_result = engine.lower_level_optimizer(p,problem,status,information,options,t_main_loop)
+    status.f_calls += ll_result.f_calls
+    q = ll_result.y
+    FF = problem.F(p, q)
+    if FF < status.best_sol.F
+        status.best_sol.F = FF
+        status.best_sol.f = ll_result.f
+        status.best_sol.x = p
+        status.best_sol.y = q
+    else
+        @info "Fail improvement (best)!"
+    end
+
+    i_worst = argmax(y)
+
+    if FF < status.population[i_worst].F
+        status.population[i_worst].F = FF
+        status.population[i_worst].f = ll_result.f
+        status.population[i_worst].x = p
+        status.population[i_worst].y = q
+    else
+        @info "Fail improvement!"
+    end
+end
 
 is_better_approx(solution_1, solution_2) = solution_1.F < solution_2.F
 

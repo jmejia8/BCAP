@@ -1,13 +1,20 @@
-function F(x, y; λ_1= 0.0, λ_2 = 0.01)
-        mean_y = mean(y.instance_values, dims=2)[:,1]
-        not_solved = .!y.solved_instances
+function F(x, y; λ=0.01)
+    mean_y = mean(y.instance_values, dims=2)[:,1]
+    not_solved = .!y.solved_instances
+    r = λ*norm(x,1)
 
-        m = mean(mean_y[ not_solved ])
-        if isnan(m)
-            m = 0.0
-        end
+    if sum(not_solved) == 0
+        return r
+    end
 
-        m + λ_1*sum(not_solved) + λ_2*norm(x,1)
+    m = (mean_y[ not_solved ])
+
+    I = m .> 1000
+
+    m[I] = min.(900, 10log10.(m[I]))
+
+
+    mean(m) + 1e3sum(not_solved) + r
 end
 
 function f(x, y)

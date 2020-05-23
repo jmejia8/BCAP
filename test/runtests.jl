@@ -6,7 +6,7 @@ addprocs(2)
 using Test
 import Random: seed!
 
-seed!(31)
+seed!(1)
 
 function test1()
 
@@ -16,7 +16,7 @@ function test1()
         if instance.index % 3 == 0
             v = rand()
         else
-            v = (instance.index-1)*(sum( abs.(Φ .- (0:length(Φ)-1) )  ) + 0.5rand())
+            v = (sum( abs.(Φ .- (0:length(Φ)-1) )  ) + 0.5rand())
         end
 
         return v <= instance.optimum ? 0.0 : v

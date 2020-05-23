@@ -6,6 +6,9 @@ import LinearAlgebra: norm
 import Printf: @printf
 import Random: randperm
 using Distributed, SharedArrays
+using BiApprox, MLKernels, Optim
+
+
 @everywhere import Random: seed!
 
 
