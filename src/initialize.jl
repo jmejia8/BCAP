@@ -32,7 +32,7 @@ function initialize!(problem,engine,parameters,status,information,options)
         return
     end
 
-    surrogate!(problem,
+    parameters.surrogated && surrogate!(problem,
         engine,
         parameters,
         status,

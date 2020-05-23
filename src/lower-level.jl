@@ -71,7 +71,7 @@ function lower_level_optimizer(
 
     end
 
-    K = parameters.K
+    K = parameters.N
 
     y = zeros(size(status.population[I[1]].y.instance_values))
     m = exp.(-distances[I[1:K]])
@@ -85,6 +85,8 @@ function lower_level_optimizer(
 
     y = y ./ sum(m)
     y = map(a -> a ≈ 0.0 ? 0.0 : a, y)
+
+    # display(y)
 
     mean_y = mean(y, dims = 2)[:, 1]
     instances2eval = map(w -> w > 0.0, mean_y)

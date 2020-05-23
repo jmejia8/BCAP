@@ -6,7 +6,7 @@ addprocs(2)
 using Test
 import Random: seed!
 
-seed!(1)
+seed!(31)
 
 function test1()
 

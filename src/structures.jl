@@ -52,6 +52,7 @@ mutable struct BCAP_config
     F_approx::Function
     max_global_iters::Int
     max_local_iters::Int
+    surrogated::Bool
     p::Int
 end
 
@@ -70,6 +71,7 @@ function BCAP_config(; N = 30,
                 F_approx = identity,
                 max_global_iters = 100,
                 p = 1,
+                surrogated = true,
                 max_local_iters = 10)
 
     BCAP_config(N,
@@ -87,5 +89,6 @@ function BCAP_config(; N = 30,
                 F_approx,
                 max_global_iters,
                 max_local_iters,
+                surrogated,
                 p)
 end

@@ -9,7 +9,6 @@ function update_state!(
 )
 
     best = deepcopy(status.best_sol)
-    P_old = copy(status.population)
     Bilevel.BCAOperators.update_state!(
         problem,
         engine,
@@ -83,8 +82,6 @@ function update_state!(
             status.best_sol.y = deepcopy(sol.y)
         end
 
-        push!(P_old, sol)
-
         if status.f_calls >= options.f_calls_limit || status.best_sol.f == 0.0
             status.stop = true
             status.stop_msg = "f_calls limited or optimum found"
@@ -93,17 +90,12 @@ function update_state!(
     end
 
 
-    if length(P_old) > parameters.N
-        sort!(P_old, lt = (a, b) -> is_better(a, b))
-        status.population = P_old[1:parameters.N]
-    end
-
     ##################################################
     ##################################################
     ##################################################
     ##################################################
 
-    surrogate!(problem,
+    parameters.surrogated && surrogate!(problem,
         engine,
         parameters,
         status,
@@ -141,7 +133,9 @@ function surrogate!(problem,
     res = Optim.optimize(F̂, zeros(length(a)), ones(length(a)), x_initial, optimizer, Optim.Options(outer_iterations = 1))
     p = a .+ (b - a) .* res.minimizer
 
-    ll_result = engine.lower_level_optimizer(p,problem,status,information,options,t_main_loop)
+    ll_result = engine.lower_level_optimizer(p,problem,status,information,options,0)
+    @show p
+
     status.f_calls += ll_result.f_calls
     q = ll_result.y
     FF = problem.F(p, q)
