@@ -71,7 +71,7 @@ function lower_level_optimizer(
 
     end
 
-    K = parameters.N
+    K = parameters.K_ll
 
     y = zeros(size(status.population[I[1]].y.instance_values))
     m = exp.(-distances[I[1:K]])

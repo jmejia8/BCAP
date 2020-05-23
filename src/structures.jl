@@ -39,6 +39,7 @@ end
 mutable struct BCAP_config
     N::Int64
     K::Int64
+    K_ll::Int64
     η_max::Float64
     λ::Float64
     parms_type::Array
@@ -58,6 +59,7 @@ end
 
 function BCAP_config(; N = 30,
                 K = 6,
+                K_ll = K,
                 η_max = 1.2,
                 λ = 1e-1,
                 parms_type = [],
@@ -76,6 +78,7 @@ function BCAP_config(; N = 30,
 
     BCAP_config(N,
                 K,
+                K_ll,
                 η_max,
                 λ,
                 parms_type,
