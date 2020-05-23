@@ -134,7 +134,6 @@ function surrogate!(problem,
     p = a .+ (b - a) .* res.minimizer
 
     ll_result = engine.lower_level_optimizer(p,problem,status,information,options,0)
-    @show p
 
     status.f_calls += ll_result.f_calls
     q = ll_result.y
@@ -145,7 +144,7 @@ function surrogate!(problem,
         status.best_sol.x = p
         status.best_sol.y = q
     else
-        @info "Fail improvement (best)!"
+        options.debug && @info "Fail improvement (best)!"
     end
 
     i_worst = argmax(y)
@@ -156,7 +155,7 @@ function surrogate!(problem,
         status.population[i_worst].x = p
         status.population[i_worst].y = q
     else
-        @info "Fail improvement!"
+        options.debug && @info "Fail improvement!"
     end
 end
 
