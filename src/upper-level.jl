@@ -72,6 +72,8 @@ function update_state!(
             sol.y = q
             sol.F = FF
             sol.f = ll_result.f
+
+            push!(parameters.solutions, deepcopy(sol))
         end
 
         if is_better(sol, status.best_sol)
@@ -157,6 +159,8 @@ function surrogate!(problem,
     else
         options.debug && @info "Fail improvement!"
     end
+
+    push!(parameters.solutions, deepcopy(status.population[i_worst]))
 end
 
 is_better_approx(solution_1, solution_2) = solution_1.F < solution_2.F

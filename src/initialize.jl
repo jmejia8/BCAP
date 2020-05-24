@@ -26,6 +26,8 @@ function initialize!(problem,engine,parameters,status,information,options)
 
     status.final_time = t2
 
+    parameters.solutions = deepcopy(status.population)
+
     if status.best_sol.y.isfeasible && status.best_sol.f == 0.0
         status.stop = true
         status.stop_msg = "Optimum found"

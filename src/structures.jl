@@ -55,11 +55,12 @@ mutable struct BCAP_config
     max_local_iters::Int
     surrogated::Bool
     p::Int
+    solutions::Array
 end
 
 function BCAP_config(; N = 30,
                 K = 6,
-                K_ll = K,
+                K_ll = -1,
                 η_max = 1.2,
                 λ = 1e-1,
                 parms_type = [],
@@ -73,6 +74,7 @@ function BCAP_config(; N = 30,
                 F_approx = identity,
                 max_global_iters = 100,
                 p = 1,
+                solutions = [],
                 surrogated = true,
                 max_local_iters = 10)
 
@@ -93,5 +95,6 @@ function BCAP_config(; N = 30,
                 max_global_iters,
                 max_local_iters,
                 surrogated,
-                p)
+                p,
+                solutions)
 end
