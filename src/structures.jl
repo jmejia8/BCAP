@@ -55,7 +55,7 @@ mutable struct BCAP_config
     max_local_iters::Int
     surrogated::Bool
     p::Int
-    solutions::Array
+    solutions
 end
 
 function BCAP_config(; N = 30,

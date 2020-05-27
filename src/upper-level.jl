@@ -19,6 +19,8 @@ function update_state!(
         t_main_loop,
     )
 
+    force_reevaluation = sum(status.best_sol.y.solved_instances) == length(status.best_sol.y.solved_instances)
+
     if !status.best_sol.y.isfeasible || status.best_sol.F > best.F
         status.best_sol = best
     end
@@ -33,11 +35,12 @@ function update_state!(
     reevaluate = status.stop || (t_main_loop > 0 && t_main_loop % 5 != 0)
 
     # force reevaluation of last population
-    force_reevaluation =
+    force_reevaluation = force_reevaluation ||
         options.f_calls_limit - status.f_calls <=
         (parameters.N) *
         length(parameters.benchmark) *
         parameters.calls_per_instance
+
 
 
     if reevaluate && !force_reevaluation
@@ -118,11 +121,23 @@ function surrogate!(problem,
     t_main_loop,
 )
 
+    unique!(parameters.solutions)
+
+
     a = problem.bounds_ul[1,:]
     b = problem.bounds_ul[2,:]
 
-    X = map(sol -> sol.x', status.population)
-    y = map(sol -> sol.F, status.population)
+
+
+    n = length(parameters.solutions)
+    n_train = min(1000, n)
+
+    options.debug && @info "Training with ", n_train, " / ", n
+
+    sols = parameters.solutions[ randperm(n)[1:n_train] ]
+
+    X = map(sol -> sol.x', sols)
+    y = map(sol -> sol.F, sols)
     X = vcat(X...)
     X = (X .- a') ./ (b - a)'
     method = KernelInterpolation(y, X, λ = 1e-5, kernel = PolynomialKernel())
@@ -149,7 +164,7 @@ function surrogate!(problem,
         options.debug && @info "Fail improvement (best)!"
     end
 
-    i_worst = argmax(y)
+    i_worst = argmax(map( ind -> ind.F, status.population ))
 
     if FF < status.population[i_worst].F
         status.population[i_worst].F = FF

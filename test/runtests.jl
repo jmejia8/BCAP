@@ -30,7 +30,8 @@ function test1()
 
     benchmark = [Instance(0.5i, nothing, i) for i = 1:10]
 
-    res = configure(target_algorithm, parameters, benchmark, debug = false )
+    bcap_config = BCAP_config(K_ll = 1)
+    res = configure(target_algorithm, parameters, benchmark, debug = false, bcap_config = bcap_config )
 
     display(res)
 
@@ -57,7 +58,8 @@ function test2()
 
     benchmark = [Instance(0.5i, nothing, i) for i = 1:10]
 
-    res = configure(target_algorithm, parameters, benchmark, debug = false )
+    bcap_config = BCAP_config(K_ll = 1)
+    res = configure(target_algorithm, parameters, benchmark, debug = false, bcap_config = bcap_config )
     display(res)
     res.best_sol.f ≈ 0.0
 
