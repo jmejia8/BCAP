@@ -100,7 +100,7 @@ function update_state!(
     ##################################################
     ##################################################
 
-    parameters.surrogated && surrogate!(problem,
+    parameters.surrogated && !force_reevaluation && surrogate!(problem,
         engine,
         parameters,
         status,
