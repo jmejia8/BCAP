@@ -62,7 +62,7 @@ function configure(target_algorithm::Function,
     bcap_config.K_ll = min(bcap_config.N, max(1, bcap_config.K_ll) )
     bcap_config.parms_type = parameters_types
     bcap_config.benchmark = benchmark
-    bcap_config.η_max = 1.2
+    bcap_config.η_max = bcap_config.η_max <= 0 ? 1.2 : bcap_config.η_max
     bcap_config.targetAlgorithm = target_algorithm
 
 
