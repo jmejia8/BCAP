@@ -32,7 +32,7 @@ function update_state!(
 
     if status.best_sol.y.isfeasible && status.best_sol.f == 0.0
         status.stop = true
-        status.stop_msg = "Optimum found 1"
+        status.stop_msg = "Optimum found after approximation"
         return
     end
 
@@ -45,12 +45,48 @@ function update_state!(
                      parameters.calls_per_instance
 
     force_reevaluation = force_reevaluation || last_iteration
-    options.debug && force_reevaluation && @info "Re-evualing since last iteration."
+    options.debug && last_iteration && @info "Re-evualing since last iteration."
 
     if !reevaluate && !force_reevaluation
         status.final_time = time()
         return
     end
+
+
+    ##################################################
+    ##################################################
+
+    reevaluate!(problem,
+        engine,
+        parameters,
+        status,
+        information,
+        options,
+        t_main_loop,)
+
+    ##################################################
+    ##################################################
+
+    parameters.surrogated && !force_reevaluation && surrogate!(problem,
+        engine,
+        parameters,
+        status,
+        information,
+        options,
+        t_main_loop,)
+
+    status.final_time = time()
+
+end
+
+function reevaluate!(problem,
+    engine,
+    parameters,
+    status,
+    information,
+    options,
+    t_main_loop
+)
 
     # replace infeasible
     insert_best_to_pop = true
@@ -98,11 +134,11 @@ function update_state!(
         if status.f_calls >= options.f_calls_limit || status.best_sol.f == 0.0
             status.stop = true
             if status.best_sol.f == 0.0
-                status.stop_msg = "Optimum found 2"
+                status.stop_msg = "Optimum found in reevaluation"
             else
                 status.stop_msg = "Budget spent"
             end
-            break
+            return
         end
     end
 
@@ -110,21 +146,6 @@ function update_state!(
         status.population[id_worst] = status.best_sol
     end
 
-
-    ##################################################
-    ##################################################
-    ##################################################
-    ##################################################
-
-    parameters.surrogated && !force_reevaluation && surrogate!(problem,
-        engine,
-        parameters,
-        status,
-        information,
-        options,
-        t_main_loop,)
-
-    status.final_time = time()
 
 end
 
@@ -148,7 +169,7 @@ function surrogate!(problem,
     n = length(parameters.solutions)
     n_train = min(1000, n)
 
-    options.debug && @info "Training with ($(n_train) different confs.) / ($n in total)"
+    options.debug && @info "Training surrogate model using ($(n_train) different confs.) / ($n in total)"
 
     sols = parameters.solutions[ randperm(n)[1:n_train] ]
 
@@ -171,22 +192,26 @@ function surrogate!(problem,
     status.f_calls += ll_result.f_calls
     q = ll_result.y
     FF = problem.F(p, q)
+    status.f_calls += 1
+
+    sol = Bilevel.generateChild(p, q, FF, ll_result.f)
+
     if FF < status.best_sol.F
-        status.best_sol.F = FF
-        status.best_sol.f = ll_result.f
-        status.best_sol.x = p
-        status.best_sol.y = q
+        status.best_sol = sol
+        options.debug && @info "Success improvement (best)!"
     else
         options.debug && @warn "Fail improvement (best)!"
+    end
+
+    if status.best_sol.f == 0.0
+
     end
 
     i_worst = argmax(map( ind -> ind.F, status.population ))
 
     if FF < status.population[i_worst].F
-        status.population[i_worst].F = FF
-        status.population[i_worst].f = ll_result.f
-        status.population[i_worst].x = p
-        status.population[i_worst].y = q
+        status.population[i_worst] = sol
+        options.debug && @warn "Success improvement (update population)!"
     else
         options.debug && @warn "Fail improvement!"
     end
@@ -207,7 +232,7 @@ function stop_criteria(status, information, options)
 
     if status.best_sol.y.isfeasible && status.best_sol.f == 0.0
         status.stop = true
-        status.stop_msg = "Optimum found 3"
+        status.stop_msg = "Optimum found by surrogated method"
         return true
     end
 
