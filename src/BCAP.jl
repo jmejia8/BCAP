@@ -42,7 +42,7 @@ function configure(target_algorithm::Function,
                     bcap_config = BCAP_config(),
                     debug = false,
                     store_convergence=false,
-                    budget=500)
+                    budget=2000)
 
     bounds, parameters_types = parameters_info.bounds, parameters_info.types
 
@@ -55,7 +55,10 @@ function configure(target_algorithm::Function,
     D_ = size(bounds, 2)
 
     K = bcap_config.K
-    bcap_config.N = max(2K, min(s , K*D_))
+    if bcap_config.N < 1
+        bcap_config.N = max(2K, min(s , K*D_))
+        debug && @info("Using default population size: $(bcap_config.N)")
+    end
     bcap_config.K_ll = min(bcap_config.N, max(1, bcap_config.K_ll) )
     bcap_config.parms_type = parameters_types
     bcap_config.benchmark = benchmark
@@ -64,7 +67,7 @@ function configure(target_algorithm::Function,
 
 
     options = Bilevel.Options(F_calls_limit=Inf,
-                        f_calls_limit=budget*length(benchmark),
+                        f_calls_limit=budget,
                         F_tol=1e-5,
                         f_tol=1e-5,
                         store_convergence=store_convergence,

@@ -55,10 +55,11 @@ mutable struct BCAP_config
     max_local_iters::Int
     surrogated::Bool
     p::Int
+    t_reevaluation::Int
     solutions
 end
 
-function BCAP_config(; N = 30,
+function BCAP_config(; N = 0,
                 K = 6,
                 K_ll = -1,
                 η_max = 1.2,
@@ -68,7 +69,7 @@ function BCAP_config(; N = 30,
                 calls_per_instance = 1,
                 targetAlgorithm = identity,
                 benchmark = Instance[],
-                seed = 0,
+                seed = 1,
                 training_population = Set([]),
                 approx_model = nothing,
                 F_approx = identity,
@@ -76,6 +77,7 @@ function BCAP_config(; N = 30,
                 p = 1,
                 solutions = [],
                 surrogated = true,
+                t_reevaluation = 5,
                 max_local_iters = 10)
 
     BCAP_config(N,
@@ -96,5 +98,6 @@ function BCAP_config(; N = 30,
                 max_local_iters,
                 surrogated,
                 p,
+                round(Int, t_reevaluation),
                 solutions)
 end

@@ -8,7 +8,11 @@ function update_state!(
     t_main_loop,
 )
 
-    best = deepcopy(status.best_sol)
+    if status.stop
+        return
+    end
+
+    best_feasible = deepcopy(status.best_sol)
     Bilevel.BCAOperators.update_state!(
         problem,
         engine,
@@ -20,40 +24,39 @@ function update_state!(
     )
 
     force_reevaluation = sum(status.best_sol.y.solved_instances) == length(status.best_sol.y.solved_instances)
+    options.debug && force_reevaluation && @info "Re-evualing since infeasible elite solution seems true optimum."
 
-    if !status.best_sol.y.isfeasible || status.best_sol.F > best.F
-        status.best_sol = best
+    if !status.best_sol.y.isfeasible || status.best_sol.F > best_feasible.F
+        status.best_sol = best_feasible
     end
 
     if status.best_sol.y.isfeasible && status.best_sol.f == 0.0
         status.stop = true
-        status.stop_msg = "isfeasible or optimum found"
-        status.stop_msg = "Optimum found"
+        status.stop_msg = "Optimum found 1"
         return
     end
 
-    reevaluate = status.stop || (t_main_loop > 0 && t_main_loop % 5 != 0)
+    reevaluate = status.stop || (t_main_loop > 0 && t_main_loop % parameters.t_reevaluation == 0)
+    options.debug && reevaluate && @info "Re-evualing since ($(t_main_loop)th iter) % $(parameters.t_reevaluation) = 0"
 
     # force reevaluation of last population
-    force_reevaluation = force_reevaluation ||
-        options.f_calls_limit - status.f_calls <=
-        (parameters.N) *
-        length(parameters.benchmark) *
-        parameters.calls_per_instance
+    last_iteration = options.f_calls_limit - status.f_calls <= (parameters.N) *
+                     length(parameters.benchmark) *
+                     parameters.calls_per_instance
 
+    force_reevaluation = force_reevaluation || last_iteration
+    options.debug && force_reevaluation && @info "Re-evualing since last iteration."
 
-
-    if reevaluate && !force_reevaluation
+    if !reevaluate && !force_reevaluation
         status.final_time = time()
         return
     end
 
-    options.debug && @info "Re-evualing...."
-    options.debug && force_reevaluation && @info "Forced Re-evualuation...."
-
-
-
-    for sol in status.population
+    # replace infeasible
+    insert_best_to_pop = true
+    id_worst = 1
+    for i in 1:length(status.population)
+        sol = status.population[i]
         if !sol.y.isfeasible
             p = sol.x
 
@@ -85,13 +88,26 @@ function update_state!(
             status.best_sol.f = sol.f
             status.best_sol.x = copy(sol.x)
             status.best_sol.y = deepcopy(sol.y)
+            insert_best_to_pop = false
+        end
+
+        if is_better(status.population[id_worst], sol)
+            id_worst = i
         end
 
         if status.f_calls >= options.f_calls_limit || status.best_sol.f == 0.0
             status.stop = true
-            status.stop_msg = "f_calls limited or optimum found"
+            if status.best_sol.f == 0.0
+                status.stop_msg = "Optimum found 2"
+            else
+                status.stop_msg = "Budget spent"
+            end
             break
         end
+    end
+
+    if insert_best_to_pop
+        status.population[id_worst] = status.best_sol
     end
 
 
@@ -132,7 +148,7 @@ function surrogate!(problem,
     n = length(parameters.solutions)
     n_train = min(1000, n)
 
-    options.debug && @info "Training with ", n_train, " / ", n
+    options.debug && @info "Training with ($(n_train) different confs.) / ($n in total)"
 
     sols = parameters.solutions[ randperm(n)[1:n_train] ]
 
@@ -140,7 +156,7 @@ function surrogate!(problem,
     y = map(sol -> sol.F, sols)
     X = vcat(X...)
     X = (X .- a') ./ (b - a)'
-    method = KernelInterpolation(y, X, λ = 1e-5, kernel = PolynomialKernel())
+    method = KernelInterpolation(y, X, λ = parameters.λ, kernel = PolynomialKernel())
     train!(method)
     F̂ = approximate(method)
 
@@ -161,7 +177,7 @@ function surrogate!(problem,
         status.best_sol.x = p
         status.best_sol.y = q
     else
-        options.debug && @info "Fail improvement (best)!"
+        options.debug && @warn "Fail improvement (best)!"
     end
 
     i_worst = argmax(map( ind -> ind.F, status.population ))
@@ -172,7 +188,7 @@ function surrogate!(problem,
         status.population[i_worst].x = p
         status.population[i_worst].y = q
     else
-        options.debug && @info "Fail improvement!"
+        options.debug && @warn "Fail improvement!"
     end
 
     push!(parameters.solutions, deepcopy(status.population[i_worst]))
@@ -181,8 +197,7 @@ end
 is_better_approx(solution_1, solution_2) = solution_1.F < solution_2.F
 
 function is_better(solution_1, solution_2)
-    return solution_1.F < solution_2.F #|| solution_1.f < solution_2.f
-
+    return solution_1.F < solution_2.F
 end
 
 function stop_criteria(status, information, options)
@@ -192,7 +207,7 @@ function stop_criteria(status, information, options)
 
     if status.best_sol.y.isfeasible && status.best_sol.f == 0.0
         status.stop = true
-        status.stop_msg = "Optimum found"
+        status.stop_msg = "Optimum found 3"
         return true
     end
 

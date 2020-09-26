@@ -29,7 +29,7 @@ function lower_level_optimizer(
     num_instances = length(parameters.benchmark)
 
     # initialization step
-    if t == 0
+    if t == 0 || parameters.t_reevaluation < 2
         # seed = abs(rand(Int))
         y = call_target_algorithm(
             parameters.targetAlgorithm,

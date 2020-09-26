@@ -6,16 +6,18 @@ function initialize!(problem,engine,parameters,status,information,options)
 
 
     iterations = options.f_calls_limit ÷ (parameters.N * parameters.calls_per_instance * length(parameters.benchmark))
-    options.debug && @show iterations
-    if iterations < 5
-        iterations = 11
-        parameters.N =  options.f_calls_limit ÷ (iterations * parameters.calls_per_instance * length(parameters.benchmark))
-        options.debug && @show parameters.N
-        parameters.K = 2
-    end
+    options.debug && @info ("Iterations of BCAP: $(iterations)")
+    # if iterations < 5
+    #     iterations = 11
+    #     parameters.N =  options.f_calls_limit ÷ (iterations * parameters.calls_per_instance * length(parameters.benchmark))
+    #     options.debug && @show parameters.N
+    #     parameters.K = 2
+    # end
 
-    if parameters.N <=  parameters.K
+    if iterations < 2
         error("Increase budget...")
+    elseif iterations < 5
+        parameters.t_reevaluation = 1
     end
 
     #########################################
